@@ -1,12 +1,13 @@
 Summary:	CacheFiles user-space management daemon
 Name:		cachefilesd
 Version:	0.10.5
-Release:	1
+Release:	2
 License:	GPL v2
 Group:		Daemons
 URL:		http://people.redhat.com/~dhowells/fscache/
 Source0:	http://people.redhat.com/dhowells/fscache/%{name}-%{version}.tar.bz2
 # Source0-md5:	9e85dd0ace346ff47e188ded8c05ab3b
+Patch0:		%{name}-cpueating.patch
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units >= 38
 Requires:	systemd-units >= 38
@@ -19,6 +20,7 @@ persistent caching to the local disk.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %{__make} CFLAGS="%{rpmcppflags} %{rpmcflags}" \

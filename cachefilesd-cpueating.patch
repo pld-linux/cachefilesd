@@ -1,0 +1,51 @@
+; https://www.redhat.com/archives/linux-cachefs/2014-February/msg00001.html
+diff -urN cachefilesd-0.10.5.org/cachefilesd.c cachefilesd-0.10.5/cachefilesd.c
+--- cachefilesd-0.10.5.org/cachefilesd.c	2011-12-06 14:38:00.000000000 +0100
++++ cachefilesd-0.10.5/cachefilesd.c	2014-03-21 18:47:45.739197236 +0100
+@@ -98,6 +98,7 @@
+ static int oldest_build = -1;
+ static int oldest_ready = -1;
+ static int ncullable = 0;
++static int cull_delayed = 0;
+ 
+ 
+ static const char *configfile = "/etc/cachefilesd.conf";
+@@ -244,6 +245,7 @@
+ static void sigalrm(int sig)
+ {
+ 	jumpstart_scan = 1;
++	cull_delayed = 0;
+ }
+ 
+ /*****************************************************************************/
+@@ -605,11 +607,11 @@
+ 
+ 		/* sleep without racing on reap and cull with the signal
+ 		 * handlers */
+-		if (!scan && !reap && !cull) {
++		if (!scan && !reap && !(cull && !cull_delayed)) {
+ 			if (sigprocmask(SIG_BLOCK, &sigs, &osigs) < 0)
+ 				oserror("Unable to block signals");
+ 
+-			if (!reap && !cull) {
++			if (!reap && !stop && !jumpstart_scan) {
+ 				if (ppoll(pollfds, 1, NULL, &osigs) < 0 &&
+ 				    errno != EINTR)
+ 					oserror("Unable to suspend process");
+@@ -636,7 +638,7 @@
+ 			if (cull) {
+ 				if (oldest_ready >= 0)
+ 					cull_objects();
+-				else if (oldest_build < 0)
++				else if (oldest_build < 0 && !cull_delayed)
+ 					jumpstart_scan = 1;
+ 			}
+ 
+@@ -1351,6 +1353,7 @@
+ 
+ 	/* if nothing there, scan again in a short while */
+ 	if (oldest_build < 0) {
++		cull_delayed = 1;
+ 		signal(SIGALRM, sigalrm);
+ 		alarm(30);
+ 		return;
