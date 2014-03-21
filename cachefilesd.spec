@@ -1,7 +1,7 @@
 Summary:	CacheFiles user-space management daemon
 Name:		cachefilesd
 Version:	0.10.5
-Release:	0.1
+Release:	1
 License:	GPL v2
 Group:		Daemons
 URL:		http://people.redhat.com/~dhowells/fscache/
@@ -60,7 +60,7 @@ fi
 %doc README howto.txt selinux/move-cache.txt
 %doc selinux/*.fc selinux/*.if selinux/*.te
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/cachefilesd.conf
-/sbin/cachefilesd
+%attr(755,root,root) /sbin/cachefilesd
 %{systemdunitdir}/cachefilesd.service
 %{_mandir}/man5/cachefilesd.conf.5*
 %{_mandir}/man8/cachefilesd.8*
