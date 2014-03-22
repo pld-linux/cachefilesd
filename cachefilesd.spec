@@ -1,12 +1,14 @@
+# TODO:
+# - rc-scripts init
 Summary:	CacheFiles user-space management daemon
 Name:		cachefilesd
 Version:	0.10.5
 Release:	2
 License:	GPL v2
 Group:		Daemons
-URL:		http://people.redhat.com/~dhowells/fscache/
 Source0:	http://people.redhat.com/dhowells/fscache/%{name}-%{version}.tar.bz2
 # Source0-md5:	9e85dd0ace346ff47e188ded8c05ab3b
+URL:		http://people.redhat.com/~dhowells/fscache/
 Patch0:		%{name}-cpueating.patch
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units >= 38
@@ -23,21 +25,19 @@ persistent caching to the local disk.
 %patch0 -p1
 
 %build
-%{__make} CFLAGS="%{rpmcppflags} %{rpmcflags}" \
-	all
+%{__make} all \
+	CC="%{__cc}" \
+	CFLAGS="%{rpmcppflags} %{rpmcflags}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT{/sbin,%{_mandir}/man{5,8},%{systemdunitdir},%{_localstatedir}/cache/fscache}
 
-install -d $RPM_BUILD_ROOT/sbin
-install -d $RPM_BUILD_ROOT%{systemdunitdir}
-install -d $RPM_BUILD_ROOT%{_mandir}/{man5,man8}
-install -d $RPM_BUILD_ROOT%{_localstatedir}/cache/fscache
+%{__make} install \
+	INSTALL="install -p" \
+	DESTDIR=$RPM_BUILD_ROOT
 
-%{__make} DESTDIR=$RPM_BUILD_ROOT install
-
-install cachefilesd.conf $RPM_BUILD_ROOT%{_sysconfdir}
-install cachefilesd.service $RPM_BUILD_ROOT%{systemdunitdir}/cachefilesd.service
+cp -p cachefilesd.service $RPM_BUILD_ROOT%{systemdunitdir}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -49,8 +49,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %preun
 if [ "$1" = "0" ]; then
+#	/sbin/chkconfig --del cachefilesd
 	%service cachefilesd stop
-        #/sbin/chkconfig --del cachefilesd
 fi
 %systemd_preun cachefilesd.service
 
@@ -63,7 +63,7 @@ fi
 %doc selinux/*.fc selinux/*.if selinux/*.te
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/cachefilesd.conf
 %attr(755,root,root) /sbin/cachefilesd
-%{systemdunitdir}/cachefilesd.service
 %{_mandir}/man5/cachefilesd.conf.5*
 %{_mandir}/man8/cachefilesd.8*
+%{systemdunitdir}/cachefilesd.service
 %dir %{_localstatedir}/cache/fscache
