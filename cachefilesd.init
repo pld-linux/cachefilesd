@@ -1,0 +1,103 @@
+#!/bin/sh
+#
+# cachefilesd    Start up and shut down the cachefilesd daemon
+#
+# chkconfig:	345 13 87
+#
+# description: Starts user-level daemon that manages the caching files \
+#	       used by Network Filsystems
+#
+# processname:	cachefilesd
+# config:	/etc/cachefilesd.conf
+#
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Get network config
+. /etc/sysconfig/network
+
+# Check that networking is up.
+if is_yes "${NETWORKING}"; then
+	if [ ! -f /var/lock/subsys/network -a "$1" != stop -a "$1" != status ]; then
+		msg_network_down "CacheFiles Daemon"
+		exit 1
+	fi
+else
+	exit 0
+fi
+
+# Set defaults
+CONFFILE=/etc/cachefilesd.conf
+PIDFILE=/var/run/cachefilesd.pid
+OPTIONS="-f $CONFFILE"
+
+# Get service config - may override defaults
+[ -f /etc/sysconfig/cachefilesd ] && . /etc/sysconfig/cachefilesd
+
+start() {
+	# Check if the service is already running?
+	if [ -f /var/lock/subsys/cachefilesd ]; then
+		msg_already_running "CacheFiles Daemon"
+		return
+	fi
+
+	msg_starting "CacheFiles Daemon"
+	modprobe -qs cachefiles
+    daemon --pidfile=$PIDFILE /usr/sbin/cachefilesd $OPTIONS
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/cachefilesd
+}
+
+stop() {
+	if [ ! -f /var/lock/subsys/cachefilesd ]; then
+		msg_not_running "CacheFiles Daemon"
+		return
+	fi
+
+	# Stop daemons.
+	msg_stopping "CacheFiles Daemon"
+	killproc --pidfile $PIDFILE cachefilesd -TERM
+	rm -f /var/lock/subsys/cachefilesd
+}
+
+condrestart() {
+	if [ ! -f /var/lock/subsys/cachefilesd ]; then
+		msg_not_running "CacheFiles Daemon"
+		RETVAL=$1
+		return
+	fi
+
+	stop
+	start
+}
+
+RETVAL=0
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart)
+	stop
+	start
+	;;
+  try-restart)
+	condrestart 0
+	;;
+  force-reload)
+	condrestart 7
+	;;
+  status)
+	status --pidfile $PIDFILE cachefilesd
+	RETVAL=$?
+	;;
+  *)
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|status}"
+	exit 3
+esac
+
+exit $RETVAL
