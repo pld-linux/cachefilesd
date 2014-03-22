@@ -8,8 +8,8 @@ License:	GPL v2
 Group:		Daemons
 Source0:	http://people.redhat.com/dhowells/fscache/%{name}-%{version}.tar.bz2
 # Source0-md5:	9e85dd0ace346ff47e188ded8c05ab3b
-URL:		http://people.redhat.com/~dhowells/fscache/
 Patch0:		%{name}-cpueating.patch
+URL:		http://people.redhat.com/~dhowells/fscache/
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units >= 38
 Requires:	systemd-units >= 38
