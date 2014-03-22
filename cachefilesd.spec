@@ -13,7 +13,7 @@ Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units >= 38
 Requires:	rc-scripts
 Requires:	systemd-units >= 38
-Requires:	uname(release) >= 2.6.24
+Requires:	uname(release) >= 2.6.30
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
