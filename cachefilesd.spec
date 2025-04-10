@@ -1,14 +1,14 @@
 Summary:	CacheFiles user-space management daemon
+Summary(pl.UTF-8):	Demon przestrzeni użytkownika zarządzający pamięcią podręczną plików
 Name:		cachefilesd
-Version:	0.10.5
-Release:	2
+Version:	0.10.10
+Release:	1
 License:	GPL v2
 Group:		Daemons
-Source0:	http://people.redhat.com/dhowells/fscache/%{name}-%{version}.tar.bz2
-# Source0-md5:	9e85dd0ace346ff47e188ded8c05ab3b
+Source0:	https://people.redhat.com/dhowells/fscache/%{name}-%{version}.tar.bz2
+# Source0-md5:	b440010d63ab18eebec63fe0328cba05
 Source1:	%{name}.init
-Patch0:		%{name}-cpueating.patch
-URL:		http://people.redhat.com/~dhowells/fscache/
+URL:		https://people.redhat.com/dhowells/fscache/
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units >= 38
 Requires:	rc-scripts
@@ -21,9 +21,13 @@ The cachefilesd daemon manages the caching files and directory that
 are that are used by network file systems such a AFS and NFS to do
 persistent caching to the local disk.
 
+%description -l pl.UTF-8
+Demon cachefilesd zarządza pamięcią podręczną plików i katalogów,
+używaną przez sieciowe systemy plików, takie jak AFS i NFS do trwałego
+buforowania na dysku lokalnym.
+
 %prep
 %setup -q
-%patch0 -p1
 
 %build
 %{__make} all \
@@ -61,8 +65,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc README howto.txt selinux/move-cache.txt
-%doc selinux/*.fc selinux/*.if selinux/*.te
+%doc README howto.txt selinux
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/cachefilesd.conf
 %attr(755,root,root) /sbin/cachefilesd
 %{_mandir}/man5/cachefilesd.conf.5*
